@@ -1,0 +1,1524 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Caderneta Dendrométrica</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#D9500B">
+<link rel="apple-touch-icon" href="./icone-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#EAEDE6; --surface:#FFFFFF; --surface2:#F4F6F0; --sunk:#E1E5DA;
+  --ink:#131A14; --ink2:#3C4A3D; --muted:#66735F; --line:#D2D8C9; --line2:#BFC7B6;
+  --sig:#D9500B; --sig-ink:#FFFFFF; --sig-soft:#FBE9DF;
+  --ok:#2A6B49; --ok-soft:#DFEDE4;
+  --warn:#9A6B05; --warn-soft:#F7EBD2;
+  --bad:#A82318; --bad-soft:#F7E1DE;
+  --shadow:0 1px 2px rgba(19,26,20,.07), 0 6px 18px -8px rgba(19,26,20,.16);
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D110D; --surface:#161B16; --surface2:#1D231C; --sunk:#0A0E0A;
+    --ink:#E8EEE5; --ink2:#C3CDBE; --muted:#8B9888; --line:#2A322A; --line2:#3A443A;
+    --sig:#FF7A38; --sig-ink:#1A0D05; --sig-soft:#33190B;
+    --ok:#5CB187; --ok-soft:#12291D;
+    --warn:#D6A339; --warn-soft:#2B2210;
+    --bad:#E0685C; --bad-soft:#2E1512;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 22px -10px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D110D; --surface:#161B16; --surface2:#1D231C; --sunk:#0A0E0A;
+  --ink:#E8EEE5; --ink2:#C3CDBE; --muted:#8B9888; --line:#2A322A; --line2:#3A443A;
+  --sig:#FF7A38; --sig-ink:#1A0D05; --sig-soft:#33190B;
+  --ok:#5CB187; --ok-soft:#12291D;
+  --warn:#D6A339; --warn-soft:#2B2210;
+  --bad:#E0685C; --bad-soft:#2E1512;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 22px -10px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.45; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{margin:0}
+button{font-family:inherit; font-size:inherit; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink)}
+
+.lbl{
+  font-family:"Barlow Condensed",Impact,sans-serif; font-weight:600;
+  text-transform:uppercase; letter-spacing:.09em; font-size:14px; color:var(--muted);
+  display:block; margin-bottom:5px;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{
+  position:sticky; top:0; z-index:40; background:var(--surface);
+  border-bottom:1px solid var(--line); padding:10px 14px 0;
+  padding-top:calc(10px + env(safe-area-inset-top));
+}
+.hrow{display:flex; align-items:center; gap:10px}
+.mark{
+  width:30px;height:30px;flex:none;border-radius:7px;background:var(--sig);
+  display:grid;place-items:center;color:var(--sig-ink);
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px;line-height:1
+}
+.htitle{
+  font-family:"Barlow Condensed",Impact,sans-serif; font-weight:700;
+  font-size:clamp(17px,5.1vw,22px); letter-spacing:.02em; text-transform:uppercase; line-height:1.05;
+}
+.hsub{font-size:11.5px; color:var(--muted); letter-spacing:.03em; margin-top:-1px}
+.polychip{
+  margin-left:auto; background:var(--sunk); border:1px solid var(--line2); border-radius:9px;
+  padding:4px 10px; text-align:right; line-height:1.15;
+}
+.polychip b{font-family:"IBM Plex Mono",monospace; font-size:17px; display:block; font-weight:600}
+.polychip span{font-family:"Barlow Condensed",sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+
+/* gps strip */
+.gps{
+  display:flex; align-items:center; gap:8px; margin:9px -14px 0; padding:7px 14px;
+  border-top:1px solid var(--line); font-size:12.5px;
+}
+.gps.g-ok{background:var(--ok-soft)} .gps.g-warn{background:var(--warn-soft)}
+.gps.g-bad{background:var(--bad-soft)} .gps.g-off{background:var(--surface2)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--muted)}
+.g-ok .dot{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 22%,transparent)}
+.g-warn .dot{background:var(--warn)} .g-bad .dot{background:var(--bad)}
+@media (prefers-reduced-motion:no-preference){ .g-ok .dot{animation:pulse 2.4s ease-in-out infinite} }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.gps .co{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:-.01em}
+.gps .acc{margin-left:auto; font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.08em; font-size:12px; font-weight:600}
+
+/* ---------- layout ---------- */
+main{padding:14px; max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:14px}
+.view[hidden]{display:none}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow)}
+.card>.chead{
+  display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.09em;font-size:14.5px;
+}
+.chead .num{
+  width:19px;height:19px;border-radius:5px;background:var(--sunk);color:var(--muted);
+  display:grid;place-items:center;font-size:12px;font-family:"IBM Plex Mono",monospace;flex:none
+}
+.cbody{padding:14px; display:flex; flex-direction:column; gap:13px}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:11px}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:9px}
+
+/* ---------- fields ---------- */
+.fld input[type=text],.fld input[type=number],.fld input[type=date],.fld select,.fld textarea{
+  width:100%; padding:11px 12px; background:var(--surface2); color:var(--ink);
+  border:1.5px solid var(--line2); border-radius:9px; outline:none; -webkit-appearance:none; appearance:none;
+}
+.fld select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%; background-size:5px 5px,5px 5px; background-repeat:no-repeat; padding-right:32px}
+.fld textarea{min-height:64px; resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--sig); background:var(--surface); box-shadow:0 0 0 3px color-mix(in srgb,var(--sig) 18%,transparent)}
+.fld input.big{font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:500; text-align:center; padding:12px 8px}
+.hint{font-size:11.5px; color:var(--muted); margin-top:4px}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 14px; border-radius:9px; border:1.5px solid var(--line2); background:var(--surface2);
+  color:var(--ink); font-weight:600; font-size:14.5px; min-height:46px;
+}
+.btn:active{transform:translateY(1px)}
+.btn.sig{background:var(--sig); border-color:var(--sig); color:var(--sig-ink)}
+.btn.ghost{background:transparent}
+.btn.wide{width:100%}
+.btn.sm{min-height:38px; padding:7px 11px; font-size:13.5px}
+.btn.danger{color:var(--bad); border-color:var(--bad)}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--sig); outline-offset:2px}
+
+/* species picker */
+.sp-wrap{position:relative}
+.sp-list{
+  position:absolute; z-index:30; left:0; right:0; top:calc(100% + 4px); max-height:280px; overflow:auto;
+  background:var(--surface); border:1.5px solid var(--line2); border-radius:10px; box-shadow:var(--shadow);
+}
+.sp-list[hidden]{display:none}
+.sp-item{padding:9px 12px; border-bottom:1px solid var(--line); cursor:pointer}
+.sp-item:last-child{border-bottom:0}
+.sp-item:hover,.sp-item.on{background:var(--sig-soft)}
+.sp-item i{font-style:italic; font-weight:600}
+.sp-item small{display:block; color:var(--muted); font-size:11.5px}
+.tag{
+  display:inline-block; font-family:"Barlow Condensed",sans-serif; text-transform:uppercase;
+  letter-spacing:.08em; font-size:11px; font-weight:600; padding:1px 7px; border-radius:5px; vertical-align:2px;
+}
+.t-N{background:var(--ok-soft); color:var(--ok)}
+.t-E{background:var(--warn-soft); color:var(--warn)}
+.t-I{background:var(--sunk); color:var(--muted)}
+
+/* selected species readout */
+.spsel{background:var(--surface2); border:1.5px solid var(--line2); border-radius:9px; padding:10px 12px}
+.spsel .sci{font-style:italic; font-weight:600; font-size:16.5px}
+.spsel .meta{font-size:12.5px; color:var(--muted); margin-top:2px}
+
+/* CAP rows */
+.caps{display:flex; flex-direction:column; gap:8px}
+.caprow{display:grid; grid-template-columns:34px 1fr 76px 40px; align-items:center; gap:8px}
+.caprow .k{font-family:"Barlow Condensed",sans-serif; font-weight:600; font-size:13px; letter-spacing:.06em; color:var(--muted); text-transform:uppercase}
+.caprow .dap{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink2); text-align:right; font-variant-numeric:tabular-nums}
+.caprow .rm{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;padding:6px}
+
+/* readout panel */
+.readout{background:var(--sunk); border-radius:10px; padding:12px; display:grid; grid-template-columns:repeat(3,1fr); gap:2px 10px}
+.ro{text-align:center}
+.ro b{display:block; font-family:"IBM Plex Mono",monospace; font-size:20px; font-weight:600; letter-spacing:-.02em}
+.ro span{font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.09em; font-size:11px; color:var(--muted)}
+.ro.hl b{color:var(--sig)}
+
+/* photos */
+.photos{display:flex; gap:8px; flex-wrap:wrap}
+.ph{position:relative; width:74px; height:74px; border-radius:9px; overflow:hidden; border:1.5px solid var(--line2)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+.ph-add{width:74px;height:74px;border-radius:9px;border:1.5px dashed var(--line2);background:var(--surface2);display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;line-height:1.2}
+
+/* bottom bar */
+.bottom{
+  position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--surface);
+  border-top:1px solid var(--line); padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  display:flex; gap:8px; max-width:640px; margin:0 auto;
+}
+.tabs{display:flex; gap:6px; flex:none}
+.tab{
+  flex:1; border:0; background:transparent; color:var(--muted); border-radius:9px; padding:6px 9px;
+  font-family:"Barlow Condensed",sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.07em;
+  font-size:12.5px; display:flex; flex-direction:column; align-items:center; gap:1px; min-width:56px;
+}
+.tab.on{background:var(--sunk); color:var(--ink)}
+.tab .ic{font-size:17px; line-height:1}
+.tabs .tab{min-width:52px; padding:6px 7px}
+.savebtn{flex:1; min-height:52px; font-size:15.5px; letter-spacing:.02em; white-space:nowrap; padding:11px 8px}
+
+/* records */
+.rec{display:flex; gap:11px; padding:11px 13px; border-bottom:1px solid var(--line); align-items:center}
+.rec:last-child{border-bottom:0}
+.rec .thumb{width:46px;height:46px;border-radius:8px;background:var(--sunk);flex:none;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:11px}
+.rec .thumb img{width:100%;height:100%;object-fit:cover}
+.rec .id{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted)}
+.rec .sci{font-style:italic; font-weight:600; font-size:14.5px; line-height:1.25}
+.rec .dt{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); letter-spacing:-.02em}
+.rec .go{margin-left:auto; border:0; background:transparent; color:var(--muted); font-size:20px; padding:8px}
+
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border-radius:10px; overflow:hidden}
+.stat{background:var(--surface); padding:10px 6px; text-align:center}
+.stat b{display:block; font-family:"IBM Plex Mono",monospace; font-size:18px; font-weight:600}
+.stat span{font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.08em; font-size:10.5px; color:var(--muted)}
+
+.empty{padding:36px 18px; text-align:center; color:var(--muted); font-size:14px}
+.empty .big{font-size:34px; display:block; margin-bottom:8px; opacity:.5}
+
+/* toast */
+#toast{
+  position:fixed; left:50%; transform:translateX(-50%); bottom:calc(96px + env(safe-area-inset-bottom));
+  background:var(--ink); color:var(--ground); padding:11px 17px; border-radius:10px; font-size:14px;
+  font-weight:600; z-index:90; box-shadow:var(--shadow); max-width:88vw; text-align:center;
+}
+#toast[hidden]{display:none}
+.note{font-size:12.5px; color:var(--muted); line-height:1.5}
+.note b{color:var(--ink2)}
+hr.sep{border:0; border-top:1px solid var(--line); margin:2px 0}
+.warnbox{background:var(--warn-soft); border:1px solid color-mix(in srgb,var(--warn) 40%,transparent); border-radius:9px; padding:10px 12px; font-size:12.5px; color:var(--ink2)}
+#modal{position:fixed; inset:0; z-index:100; background:rgba(10,14,10,.55); display:grid; place-items:center; padding:22px}
+#modal[hidden]{display:none}
+.mbox{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; max-width:380px; width:100%; box-shadow:var(--shadow)}
+.mbox p{margin:0 0 16px; font-size:15px; line-height:1.5}
+.mrow{display:flex; gap:9px}
+.mrow .btn{flex:1}
+#diagOut{font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.6; background:var(--sunk);
+  border-radius:9px; padding:12px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; margin:0; color:var(--ink2)}
+#diagOut[hidden]{display:none}
+.reqmark{color:var(--sig)}
+.err{border-color:var(--bad)!important; box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 18%,transparent)!important}
+</style>
+
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="mark">◈</div>
+    <div>
+      <h1 class="htitle">Caderneta Dendrométrica</h1>
+      <div class="hsub">Censo de árvores isoladas · faixa de domínio</div>
+    </div>
+    <div class="polychip"><b id="chipPoly">—</b><span>Polígono</span></div>
+  </div>
+  <div class="gps g-off" id="gpsBar">
+    <span class="dot"></span>
+    <span class="co" id="gpsTxt">GPS desligado</span>
+    <span class="acc" id="gpsAcc"></span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ COLETA ============ -->
+<section class="view" id="v-coleta">
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead"><span class="num">1</span> Identificação</div>
+    <div class="cbody">
+      <div class="grid2">
+        <div class="fld"><label class="lbl" for="fPoly">Polígono <span class="reqmark">*</span></label>
+          <input class="big" id="fPoly" type="text" inputmode="numeric" placeholder="146"></div>
+        <div class="fld"><label class="lbl" for="fNum">Nº da árvore</label>
+          <input class="big" id="fNum" type="text" inputmode="numeric" placeholder="auto"></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label class="lbl" for="fData">Data</label><input id="fData" type="date"></div>
+        <div class="fld"><label class="lbl" for="fColetor">Coletor</label><input id="fColetor" type="text" placeholder="Nome"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead"><span class="num">2</span> Coordenada</div>
+    <div class="cbody">
+      <div class="grid2">
+        <div class="fld"><label class="lbl" for="fX">X — Latitude <span class="reqmark">*</span></label>
+          <input class="big" id="fX" type="text" inputmode="decimal" placeholder="-22,523100"></div>
+        <div class="fld"><label class="lbl" for="fY">Y — Longitude <span class="reqmark">*</span></label>
+          <input class="big" id="fY" type="text" inputmode="decimal" placeholder="-48,554989"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn sig" style="flex:1" id="btnFix">◎ Capturar GPS</button>
+        <button class="btn" id="btnGpsOn" title="Ligar/desligar rastreio">⏻</button>
+      </div>
+      <div class="fld">
+        <label class="lbl" for="fColar">Ou cole o par de coordenadas</label>
+        <input id="fColar" type="text" inputmode="text" placeholder="-22.523100, -48.554989">
+        <div class="hint">Aceita o formato que o Google Maps e os apps de GPS copiam. Separe com vírgula, espaço ou ponto-e-vírgula.</div>
+      </div>
+      <div class="hint" id="fixInfo">Datum SIRGAS 2000 (WGS 84). Aguarde a precisão ficar abaixo de 10 m antes de capturar.</div>
+      <div class="warnbox" id="exifDica" hidden>📷 <b>A foto também traz a coordenada.</b> Se o GPS do navegador não funcionar no seu aparelho, ative <i>Salvar localização</i> na câmera do Android: ao anexar a foto, o app lê o ponto direto do arquivo.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead"><span class="num">3</span> Espécie</div>
+    <div class="cbody">
+      <div class="fld sp-wrap">
+        <label class="lbl" for="fBusca">Buscar espécie <span class="reqmark">*</span></label>
+        <input id="fBusca" type="text" autocomplete="off" placeholder="nome científico, popular ou família">
+        <div class="sp-list" id="spList" hidden></div>
+      </div>
+      <div class="spsel" id="spSel" hidden>
+        <div class="sci" id="selSci">—</div>
+        <div class="meta" id="selMeta">—</div>
+      </div>
+      <details id="spNova">
+        <summary class="lbl" style="cursor:pointer">+ Cadastrar espécie fora da lista</summary>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:11px">
+          <div class="fld"><label class="lbl" for="nSci">Nome científico <span class="reqmark">*</span></label>
+            <input id="nSci" type="text" autocomplete="off" spellcheck="false" placeholder="Genus species">
+            <div class="hint" id="nSciAviso" hidden></div></div>
+          <div class="fld sp-wrap"><label class="lbl" for="nFam">Família</label>
+            <input id="nFam" type="text" autocomplete="off" spellcheck="false" placeholder="digite — aceita família nova">
+            <div class="sp-list" id="famList" hidden></div></div>
+          <div class="grid2">
+            <div class="fld"><label class="lbl" for="nPop">Nome popular</label><input id="nPop" type="text"></div>
+            <div class="fld"><label class="lbl" for="nOrg">Origem</label>
+              <select id="nOrg"><option value="Nativa">Nativa</option><option value="Exótica">Exótica</option><option value="Indeterminada">Indeterminada</option></select></div>
+          </div>
+          <button class="btn sig sm" id="btnUsarNova" type="button">Salvar e usar esta espécie</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead"><span class="num">4</span> Dendrometria</div>
+    <div class="cbody">
+      <div class="grid2">
+        <div class="fld"><label class="lbl" for="fAlt">Altura total (m) <span class="reqmark">*</span></label>
+          <input class="big" id="fAlt" type="text" inputmode="decimal" placeholder="8"></div>
+        <div class="fld"><label class="lbl" for="fFator">Fator de forma</label>
+          <input class="big" id="fFator" type="text" inputmode="decimal" placeholder="0,70"></div>
+      </div>
+      <div>
+        <span class="lbl">CAP por fuste (cm) <span class="reqmark">*</span></span>
+        <div class="caps" id="capRows"></div>
+        <button class="btn sm ghost" id="btnAddCap" type="button" style="margin-top:8px">+ Adicionar fuste</button>
+      </div>
+      <div class="readout">
+        <div class="ro hl"><b id="roDeq">—</b><span>Deq (cm)</span></div>
+        <div class="ro"><b id="roG">—</b><span>g (m²)</span></div>
+        <div class="ro"><b id="roV">—</b><span>Vol (m³)</span></div>
+      </div>
+      <div class="hint">Deq = √(ΣDAPᵢ²) · g = π/4 × Deq² · V = g × H × f. Fator de forma padrão: 0,70 nativa / 0,65 exótica (Müller-Dombois &amp; Ellenberg, 1974; Martins, 1991).</div>
+      <div class="warnbox" id="capWarn" hidden></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead"><span class="num">5</span> Registro fotográfico</div>
+    <div class="cbody">
+      <div class="photos" id="photoBox">
+        <label class="ph-add" for="fPhoto">📷<br>Foto</label>
+        <input id="fPhoto" type="file" accept="image/*" capture="environment" multiple hidden>
+      </div>
+      <div class="fld"><label class="lbl" for="fObs">Observações</label>
+        <textarea id="fObs" placeholder="Estado fitossanitário, inclinação, conflito com rede, bifurcação, etc."></textarea></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:6px">
+    <button class="btn ghost" id="btnLimpar" style="flex:1">Limpar ficha</button>
+    <button class="btn ghost" id="btnCancelEdit" style="flex:1" hidden>Cancelar edição</button>
+  </div>
+</section>
+
+<!-- ============ REGISTROS ============ -->
+<section class="view" id="v-reg" hidden>
+  <div class="stats" style="margin-bottom:14px">
+    <div class="stat"><b id="stN">0</b><span>Árvores</span></div>
+    <div class="stat"><b id="stP">0</b><span>Polígonos</span></div>
+    <div class="stat"><b id="stS">0</b><span>Espécies</span></div>
+    <div class="stat"><b id="stF">0</b><span>Fotos</span></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="cbody" style="padding:11px">
+      <div class="fld"><input id="fFiltro" type="text" placeholder="Filtrar por polígono, espécie ou nº"></div>
+    </div>
+  </div>
+  <div class="card" id="recCard"><div id="recList"></div></div>
+</section>
+
+<!-- ============ EXPORTAR ============ -->
+<section class="view" id="v-exp" hidden>
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead">Exportar dados</div>
+    <div class="cbody">
+      <button class="btn sig wide" id="btnXlsx">⬇ Planilha Excel (.xlsx)</button>
+      <button class="btn wide" id="btnCsv">⬇ CSV — colunas do VPA07 (;)</button>
+      <button class="btn wide" id="btnZip">⬇ Fotos (.zip)</button>
+      <hr class="sep">
+      <button class="btn wide ghost" id="btnJson">⬇ Backup completo (.json)</button>
+      <label class="btn wide ghost" for="fImport" style="margin:0">⬆ Restaurar backup</label>
+      <input id="fImport" type="file" accept=".json,application/json" hidden>
+      <div class="note">O CSV sai com separador <b>;</b>, decimal com <b>vírgula</b> e as mesmas colunas do seu arquivo <b>VPA07 RT004</b> — cola direto na planilha atual. As colunas extras (precisão do GPS, coletor, hora e nome dos arquivos de foto) ficam no fim, depois de <b>Observação</b>.<br><br>
+        O <b>backup .json</b> carrega tudo — registros e fotos — em um arquivo só. É o formato que sempre passa. Se o Excel ou o .zip de fotos forem recusados aqui, baixe o backup e me mande: eu devolvo a planilha e as fotos separadas.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead">Lista de espécies</div>
+    <div class="cbody">
+      <div class="readout">
+        <div class="ro"><b id="ctBase">0</b><span>do inventário</span></div>
+        <div class="ro"><b id="ctImp">0</b><span>importadas</span></div>
+        <div class="ro hl"><b id="ctExtra">0</b><span>cadastradas</span></div>
+      </div>
+      <label class="btn wide" for="fImpEsp" style="margin:0">⬆ Importar lista de espécies (.csv)</label>
+      <input id="fImpEsp" type="file" accept=".csv,.txt,text/csv" hidden>
+      <button class="btn wide ghost" id="btnVerEsp">Ver espécies que eu cadastrei</button>
+      <button class="btn wide ghost" id="btnLimparImp" hidden>Remover a lista importada</button>
+      <div id="listaEsp" hidden></div>
+      <div class="note">O CSV precisa de uma coluna com o <b>nome científico</b>. Se tiver colunas de <b>família</b>, <b>nome popular</b> e <b>origem</b>, elas são aproveitadas — o cabeçalho pode estar em português ou em Darwin Core (<i>scientificName</i>, <i>family</i>, <i>vernacularName</i>). Separador ponto-e-vírgula ou vírgula.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead">Sessão de campo</div>
+    <div class="cbody">
+      <div class="fld"><label class="lbl" for="cProj">Projeto / trecho</label><input id="cProj" type="text" placeholder="VPA07 — Jaú → Avaré"></div>
+      <div class="fld"><label class="lbl" for="cFator">Fator de forma — exóticas</label><input id="cFator" type="text" inputmode="decimal" placeholder="0,65"></div>
+      <div class="fld"><label class="lbl" for="cFatorN">Fator de forma — nativas</label><input id="cFatorN" type="text" inputmode="decimal" placeholder="0,70"></div>
+      <div class="fld"><label class="lbl" for="cCapMin">CAP mínimo de inclusão (cm)</label><input id="cCapMin" type="text" inputmode="decimal" placeholder="15,7"></div>
+      <div class="hint">CAP 15,7 cm ≡ DAP 5,0 cm, critério de inclusão adotado no inventário. Valores abaixo disso geram alerta, mas não bloqueiam o registro.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="chead">Como usar em campo</div>
+    <div class="cbody">
+      <div class="note">
+        <b>1. Instale na tela inicial.</b> Toque em <b>Instalar na tela inicial</b> aqui em cima, ou use o menu ⋮ do Chrome → <i>Instalar aplicativo</i>.<br><br>
+        <b>2. Abra uma vez com internet.</b> A partir daí funciona offline para sempre. <span id="offStatus">Verificando o modo offline…</span><br><br>
+        <b>3. Coordenada.</b> O botão <b>Capturar GPS</b> é o caminho normal. Se a câmera do Android estiver com <i>Salvar localização</i> ligado, a foto também traz o ponto. E dá para colar o par copiado de outro app.<br><br>
+        <b>4. Os dados ficam no aparelho.</b> Nada é enviado para servidor algum. Exporte a planilha ao fim de <b>cada dia</b> e guarde também o backup .json.</div>
+      <hr class="sep">
+      <button class="btn sig wide" id="btnInstalar" hidden>⬇ Instalar na tela inicial</button>
+      <button class="btn wide ghost" id="btnDiag">Diagnóstico do GPS</button>
+      <pre id="diagOut" hidden></pre>
+      <hr class="sep">
+      <button class="btn wide danger" id="btnWipe">Apagar todos os registros</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav class="bottom">
+  <div class="tabs">
+    <button class="tab on" data-v="coleta"><span class="ic">✎</span>Coleta</button>
+    <button class="tab" data-v="reg"><span class="ic">☰</span>Registros</button>
+    <button class="tab" data-v="exp"><span class="ic">⬇</span>Exportar</button>
+  </div>
+  <button class="btn sig savebtn" id="btnSalvar">Salvar árvore</button>
+</nav>
+
+<div id="toast" hidden></div>
+
+<div id="modal" hidden>
+  <div class="mbox" role="dialog" aria-modal="true">
+    <p id="mtxt"></p>
+    <div class="mrow">
+      <button class="btn ghost" id="mNo">Cancelar</button>
+      <button class="btn sig" id="mYes">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB_SEED = {"sp":[["Mimosa caesalpiniifolia","Fabaceae","Sansão-do-campo","N"],["Pseudalbizzia niopoides","Fabaceae","Farinha-seca","N"],["Morta","Morta","Morta (indeterminada)","I"],["Leucaena leucocephala","Fabaceae","Leucena","E"],["Pterodon pubescens","Fabaceae","Faveiro","N"],["Melia azedarach","Meliaceae","Santa-bárbara","E"],["Platypodium elegans","Fabaceae","Amendoim-bravo","N"],["Tabernaemontana hystrix","Apocynaceae","Leiteiro","N"],["Tecoma stans","Bignoniaceae","Ipê-de-jardim","E"],["Mangifera indica","Anacardiaceae","Mangueira","E"],["Pterogyne nitens","Fabaceae","Amendoim-do-campo","N"],["Anadenanthera colubrina","Fabaceae","Angico-branco","N"],["Machaerium hirtum","Fabaceae","Bico-de-pato","N"],["Anadenanthera peregrina","Fabaceae","Angico-vermelho","N"],["Senegalia polyphylla","Fabaceae","Monjoleiro","N"],["Eucalyptus sp.","Myrtaceae","Eucalipto","E"],["Handroanthus chrysotrichus","Bignoniaceae","Ipê-amarelo","N"],["Handroanthus impetiginosus","Bignoniaceae","Ipê-roxo","N"],["Machaerium stipitatum","Fabaceae","Sapuvinha","N"],["Dimorphandra mollis","Fabaceae","Falso-barbatimão","N"],["Grevillea robusta","Proteaceae","Grevilha","E"],["Tapirira guianensis","Anacardiaceae","Peito-de-pomba","N"],["Nectandra megapotamica","Lauraceae","Canelinha","N"],["Syagrus romanzoffiana","Arecaceae","Jerivá","N"],["Psidium guajava","Myrtaceae","Goiabeira","E"],["Syzygium cumini","Myrtaceae","Jambolão","E"],["Astronium urundeuva","Anacardiaceae","Aroeira","N"],["Solanum mauritianum","Solanaceae","Fumo-bravo","N"],["Delonix regia","Fabaceae","Flamboyant","E"],["Enterolobium contortisiliquum","Fabaceae","Timboril","N"],["Cecropia pachystachya","Urticaceae","Embaúba","N"],["Aegiphila integrifolia","Lamiaceae","Tamanqueiro","N"],["Inga striata","Fabaceae","Ingá","N"],["Machaerium brasiliense","Fabaceae","Jacarandá-cipó","N"],["Schizolobium parahyba","Fabaceae","Guapuruvu","N"],["Cenostigma pluviosum var. peltophoroides","Fabaceae","Sibipiruna","N"],["Handroanthus heptaphyllus","Bignoniaceae","Ipê-rosa","N"],["Maclura tinctoria","Moraceae","Taiuveira","N"],["Trema micranthum","Cannabaceae","Candiúva","N"],["Artocarpus heterophyllus","Moraceae","Jaqueira","E"],["Piptadenia gonoacantha","Fabaceae","Pau-jacaré","N"],["Croton urucurana","Euphorbiaceae","Sangra-d'água","N"],["Ficus sp.","Moraceae","Figueira","N"],["Lonchocarpus cultratus","Fabaceae","Embira-de-sapo","N"],["Guarea kunthiana","Meliaceae","Marinheiro","N"],["Libidibia ferrea","Fabaceae","Pau-ferro","N"],["Machaerium acutifolium","Fabaceae","Jacarandá-do-campo","N"],["Annona coriacea","Annonaceae","Marolo","N"],["Inga laurina","Fabaceae","Ingá-mirim","N"],["Morus nigra","Moraceae","Amoreira","E"],["Myroxylon peruiferum","Fabaceae","Cabreúva","N"],["Qualea grandiflora","Vochysiaceae","Pau-terra","N"],["Cordia trichotoma","Cordiaceae","Louro-pardo","N"],["Guarea guidonia","Meliaceae","Carrapeta","N"],["Aegiphila verticilata","Lamiaceae","Tamanqueiro","N"],["Chrysophyllum flexuosum","Sapotaceae","Guatambu","N"],["Copaifera langsdorffii","Fabaceae","Copaíba","N"],["Ficus americana","Moraceae","Figueira-mata-pau","N"],["Luehea grandiflora","Malvaceae","Açoita-cavalo","N"],["Tetrorchidium rubrivenium","Euphorbiaceae","Peloteira","N"],["Trichilia elegans","Meliaceae","Pau-de-ervilha","N"],["Acrocomia aculeata","Arecaceae","Macaúba","N"],["Cedrela fissilis","Meliaceae","Cedro-rosa","N"],["Diatenopteryx sorbifolia","Sapindaceae","Sapuva","N"],["Syzygium jambos","Myrtaceae","Jambo","E"],["Caryocar brasiliensis","Caryocaraceae","Pequi","N"],["Ceiba speciosa","Malvaceae","Paineira","N"],["Parapiptadenia rigida","Fabaceae","Angico","N"],["Peltophorum dubium","Fabaceae","Canafístula","N"],["Roystonea oleracea","Arecaceae","Palmeira imperial","E"],["Tamarindus indica","Fabaceae","Tamarindo","E"],["Terminalia glabrescens","Combretaceae","Capitão-do-mato","N"],["Citharexylum myrianthum","Verbenaceae","Pau-viola","N"],["Moquilea tomentosa","Chrysobalanaceae","Oiti","N"],["Pachira aquatica","Malvaceae","Munguba","N"],["Chrysophyllum marginatum","Sapotaceae","Aguaí","N"],["Ficus elastica","Moraceae","Figueira","N"],["Hymenaea courbaril","Fabaceae","Jatobá","N"],["Persea americana","Lauraceae","Abacateiro","E"],["Plathymenia reticulata","Fabaceae","Vinhático","N"],["Pseudobombax grandiflorum","Malvaceae","Embiruçu","N"],["Senna pendula","Fabaceae","Fedegoso","N"],["Tabebuia roseo-alba","Bignoniaceae","Ipê-branco","N"],["Tachigali denudata","Fabaceae","Passuaré","N"],["Bauhinia forficata","Fabaceae","Pata-de-vaca","N"],["Cordia africana","Cordiaceae","Cordia-africana","E"],["Anacardium occidentale","Anacardiaceae","Cajueiro","N"],["Annona muricata","Annonaceae","Graviola","E"],["Citrus sp.","Rutaceae","Limoeiro","E"],["Machaerium nyctitans","Fabaceae","Jacarandá-paulista","N"],["Moquiniastrum polymorphum","Asteraceae","Candeia","N"],["Myrcia guianensis","Myrtaceae","Cambuí","N"],["Schinus terebinthifolia","Anacardiaceae","Aroeira-pimenteira","N"],["Luehea divaricata","Malvaceae","Açoita-cavalo","N"],["Annona montana","Annonaceae","Araticum","N"],["Astronium fraxinifolium","Anacardiaceae","Gonçalo-alves","N"],["Callisthene major","Vochysiaceae","Cinzeiro","N"],["Caryota urens","Arecaceae","Palmeira-rabo-de-peixe","E"],["Casearia sylvestris","Salicaceae","Guaçatonga","N"],["Didymopanax morototoni","Araliaceae","Mandiocão","N"],["Erythrina speciosa","Fabaceae","Mulungu","N"],["Ficus guaranitica","Moraceae","Figueira","N"],["Jacaranda mimosifolia","Bignoniaceae","Jacarand","E"],["Leptolobium elegans","Fabaceae","Perobinha","N"],["Moringa oleifera","Moringaceae","Moringa","E"],["Myrcia multiflora","Myrtaceae","","E"],["Ocotea pulchella","Lauraceae","Canela-do-brejo","N"],["Ormosia arborea","Fabaceae","Olho-de-cabra","N"],["Stryphnodendron adstringens","Fabaceae","Barbatimão","N"],["Syagrus oleracea","Arecaceae","Gueroba","N"],["Triplaris americana","Polygonaceae","Pau-formiga","N"],["Xylosma glaberrima","Salicaceae","Xylosma","N"],["Alchorne glandulosa","Euphorbiaceae","Tapiá","N"],["Averrhoa carambola","Oxalidaceae","Carambola","E"],["Baccharis dracunculifolia","Asteraceae","Alecrim-do-campo","N"],["Brosimum gaudichaudii","Moraceae","Conduru","N"],["Bunchosia pallescens","Malpighiaceae","Buncosia","N"],["Campomanesia xanthocarpa","Myrtaceae","Gabiroba","N"],["Cariniana estrellensis","Lecythidaceae","Jequitibá-branco","N"],["Cariniana legalis","Lecythidaceae","Jequitibá","N"],["Casearia gossypiosperma","Salicaceae","Pau-de-espeto","N"],["Cassia ferruginea","Fabaceae","Chuva-de-ouro","N"],["Cecropia sp.","Urticaceae","","N"],["Celtis iguanaea","Cannabaceae","Esporão-de-galo","E"],["Citrus reticulata","Rutaceae","Mexirica","E"],["Coccoloba mollis","Polygonaceae","Pau-jaú","N"],["Cocos nucifera","Arecaceae","Coqueiro","E"],["Croton floribundus","Euphorbiaceae","Capixingui","N"],["Cybistax antisyphilitica","Bignoniaceae","Ipê-verde","N"],["Eriobotrya japonica","Rosaceae","Nêspera","E"],["Eugenia pyriformis","Myrtaceae","Uvaia","N"],["Eugenia uniflora","Myrtaceae","Pitangueira","N"],["Genipa americana","Rubiaceae","Genipapo","N"],["Guatteria australis","Annonaceae","Pindaúva-preta","N"],["Hancornia speciosa","Apocynaceae","Mangaba","N"],["Lacistema hasslerianum","Lacistemataceae","Capixingui","N"],["Leptobalanus humilis","Chrysobalanaceae","Fruta-de-morcego","N"],["Macadamia integrifolia","Proteaceae","Macadamia","E"],["Malpighia emarginata","Malpighiaceae","Acerola","E"],["Myrcia sp.","Myrtaceae","","N"],["Paubrasilia echinata","Fabaceae","Pau-brasil","N"],["Plenckia populnea","Celastraceae","Marmelo-do-campo","N"],["Podocarpus macrophyllus","Podocarpaceae","Pinheiro","E"],["Schinus molle","Anacardiaceae","Chorão-mimoso","N"],["Sebastiania brasiliensis","Euphorbiaceae","Leiteirinho","N"],["Spondias dulcis","Anacardiaceae","Cajá-manga","E"],["Spondias mombin","Anacardiaceae","Cajá","N"],["Spondias purpurea","Anacardiaceae","Seriguela","E"],["Sweetia fruticosa","Fabaceae","Guaiçara","N"],["Terminalia cattapa","Combretaceae","Chapéu-de-sol","E"],["Vitex megapotamica","Lamiaceae","Tarumã","N"],["Xylopia aromatica","Annonaceae","Pimenta-de-macaco","N"],["Zanthoxylum riedelianum","Rutaceae","Mamica-de-porca","N"],["Bougainvillea glabra","Nyctaginaceae","Primavera","E"],["Euphorbia tirucalli","Euphorbiaceae","Aveló","E"],["Styrax ferrugineus","Styracaceae","Laranjinha-do-cerrado","N"],["Symplocos revoluta","Symplocaceae","Caapo","N"]],"fam":["Anacardiaceae","Annonaceae","Apocynaceae","Araliaceae","Arecaceae","Asteraceae","Bignoniaceae","Cannabaceae","Caryocaraceae","Celastraceae","Chrysobalanaceae","Combretaceae","Cordiaceae","Euphorbiaceae","Fabaceae","Lacistemataceae","Lamiaceae","Lauraceae","Lecythidaceae","Malpighiaceae","Malvaceae","Meliaceae","Moraceae","Moringaceae","Myrtaceae","Nyctaginaceae","Oxalidaceae","Podocarpaceae","Polygonaceae","Proteaceae","Rosaceae","Rubiaceae","Rutaceae","Salicaceae","Sapindaceae","Sapotaceae","Solanaceae","Styracaceae","Symplocaceae","Urticaceae","Verbenaceae","Vochysiaceae"]};
+
+/* ============================================================
+   Estado e persistência (IndexedDB)
+   ============================================================ */
+const S = {
+  recs: [], photos: [], editId: null, sp: null, caps: [''],
+  cfg: {proj:'', coletor:'', poly:'', fN:'0,70', fE:'0,65', capMin:'15,7'}, src:'',
+  extra: [], imported: [], gpsOn:false, fix:null, watchId:null
+};
+let db = null;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open('caderneta_dendro', 1);
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('recs')) d.createObjectStore('recs',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('photos')) d.createObjectStore('photos',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('kv')) d.createObjectStore('kv',{keyPath:'k'});
+    };
+    r.onsuccess = e => res(e.target.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+const tx = (store, mode='readonly') => db.transaction(store, mode).objectStore(store);
+function idbAll(store){ return new Promise(r=>{ const q = tx(store).getAll(); q.onsuccess=()=>r(q.result||[]); q.onerror=()=>r([]); }); }
+function idbPut(store,val){ return new Promise(r=>{ const q = tx(store,'readwrite').put(val); q.onsuccess=()=>r(true); q.onerror=()=>r(false); }); }
+function idbDel(store,key){ return new Promise(r=>{ const q = tx(store,'readwrite').delete(key); q.onsuccess=()=>r(true); q.onerror=()=>r(false); }); }
+function idbGet(store,key){ return new Promise(r=>{ const q = tx(store).get(key); q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); }); }
+function idbClear(store){ return new Promise(r=>{ const q = tx(store,'readwrite').clear(); q.onsuccess=()=>r(true); q.onerror=()=>r(false); }); }
+
+/* ============================================================
+   Utilidades numéricas
+   ============================================================ */
+const num = v => { if(v===null||v===undefined) return NaN; const s=String(v).trim().replace(',','.'); return s===''?NaN:parseFloat(s); };
+const br = (v,d) => (!isFinite(v)?'':v.toFixed(d).replace('.',','));
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function calc(caps, alt, fator){
+  const daps = caps.map(c => { const v = num(c); return isFinite(v)&&v>0 ? v/Math.PI : 0; });
+  const soma = daps.reduce((a,d)=>a+d*d, 0);
+  const deq = Math.sqrt(soma);
+  const g = Math.PI/4 * Math.pow(deq/100, 2);
+  const h = num(alt), f = num(fator);
+  const vol = (isFinite(h)&&isFinite(f)) ? g*h*f : NaN;
+  return {daps, deq, g, vol};
+}
+
+/* ============================================================
+   GPS
+   ============================================================ */
+function gpsClass(a){ if(a==null) return 'g-off'; if(a<=10) return 'g-ok'; if(a<=25) return 'g-warn'; return 'g-bad'; }
+function paintGps(){
+  const bar = document.getElementById('gpsBar');
+  const txt = document.getElementById('gpsTxt');
+  const acc = document.getElementById('gpsAcc');
+  bar.className = 'gps ' + (S.fix ? gpsClass(S.fix.acc) : 'g-off');
+  if(!S.gpsOn){ txt.textContent = 'GPS desligado — toque em ⏻'; acc.textContent=''; return; }
+  if(!S.fix){ txt.textContent = 'Procurando satélites…'; acc.textContent='—'; return; }
+  txt.textContent = S.fix.lat.toFixed(6) + ' , ' + S.fix.lon.toFixed(6);
+  acc.textContent = '±' + S.fix.acc.toFixed(0) + ' m';
+}
+function gpsToggle(){
+  if(S.gpsOn){
+    if(S.watchId!=null) navigator.geolocation.clearWatch(S.watchId);
+    S.watchId=null; S.gpsOn=false; S.fix=null; paintGps(); return;
+  }
+  if(!navigator.geolocation){ toast('Este aparelho não expõe o GPS ao navegador'); return; }
+  S.gpsOn = true; paintGps();
+  S.watchId = navigator.geolocation.watchPosition(
+    p => { S.fix = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy||99}; paintGps(); },
+    e => {
+      S.gpsOn=false; S.fix=null; paintGps();
+      const arquivo = location.protocol === 'file:';
+      const m = e.code===1 ? (arquivo
+                  ? 'O Chrome do Android bloqueia o GPS em arquivo aberto por file:// — use o link do app, ou tire a foto com a localização da câmera ligada'
+                  : 'Permissão de localização negada — libere em ⋮ › Configurações do site › Local')
+              : e.code===2 ? 'Sinal indisponível — vá para céu aberto e tente de novo'
+              : 'Tempo esgotado ao buscar o sinal';
+      document.getElementById('fixInfo').textContent = m;
+      toast(m);
+    },
+    {enableHighAccuracy:true, maximumAge:2000, timeout:20000}
+  );
+}
+function capturarFix(){
+  if(!S.gpsOn){ gpsToggle(); toast('Ligando o GPS — capture assim que estabilizar'); return; }
+  if(!S.fix){ toast('Ainda sem sinal. Aguarde alguns segundos.'); return; }
+  document.getElementById('fX').value = br(S.fix.lat, 6);
+  document.getElementById('fY').value = br(S.fix.lon, 6);
+  S.src = 'GPS do aparelho';
+  document.getElementById('fixInfo').textContent = 'Coordenada capturada com precisão de ±' + S.fix.acc.toFixed(0) + ' m às ' + new Date().toLocaleTimeString('pt-BR');
+  toast('Coordenada capturada');
+}
+
+/* ============================================================
+   Espécies
+   ============================================================ */
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+/* Índice único de busca sobre as três origens de espécie:
+   a lista do inventário, a lista importada e as cadastradas em campo.
+   Pré-normalizado uma vez, para aguentar listas grandes sem travar. */
+let IDX = [], FAMS = [];
+function reindexar(){
+  // precedência: o que o coletor cadastrou à mão vence a lista do inventário,
+  // que por sua vez vence a lista importada em massa.
+  const todas = S.extra.concat(DB_SEED.sp, S.imported);
+  const vistas = new Set();
+  IDX = [];
+  for(const x of todas){
+    const chave = norm(x[0]);
+    if(vistas.has(chave)) continue;
+    vistas.add(chave);
+    IDX.push({x, sci: chave, k: norm(x[0] + ' ' + (x[1]||'') + ' ' + (x[2]||''))});
+  }
+  FAMS = [...new Set(DB_SEED.fam.concat(IDX.map(o => o.x[1])).filter(Boolean))]
+           .sort((a,b) => a.localeCompare(b,'pt'));
+  const p = document.getElementById('ctBase');
+  if(p){
+    p.textContent = DB_SEED.sp.length;
+    document.getElementById('ctImp').textContent = S.imported.length;
+    document.getElementById('ctExtra').textContent = S.extra.length;
+    document.getElementById('btnLimparImp').hidden = !S.imported.length;
+  }
+}
+function allSpecies(){ return IDX.map(o => o.x); }
+
+function buscar(q){
+  const n = norm(q);
+  if(!n) return IDX.slice(0, 15).map(o => o.x);
+  const ini = [], meio = [];
+  for(let i = 0; i < IDX.length; i++){
+    const o = IDX[i];
+    if(o.sci.startsWith(n)) ini.push(o.x);
+    else if(o.k.includes(n)) meio.push(o.x);
+    if(ini.length >= 40) break;
+  }
+  return ini.concat(meio).slice(0, 40);
+}
+
+function pintaLista(q){
+  const box = document.getElementById('spList');
+  const rs = buscar(q);
+  const termo = (q||'').trim();
+  const criar = termo
+    ? `<div class="sp-item" data-novo="1" style="border-top:1px solid var(--line)">
+         <b style="color:var(--sig)">+ Cadastrar “${esc(termo)}”</b>
+         <small>abre o formulário com o nome já preenchido</small></div>`
+    : '';
+  if(!rs.length){
+    box.innerHTML = (termo
+      ? `<div class="sp-item" style="color:var(--muted)">Nenhuma espécie corresponde a “${esc(termo)}”.</div>` + criar
+      : '<div class="sp-item" style="color:var(--muted)">Digite para buscar.</div>');
+    box._rs = []; box.hidden = false; return;
+  }
+  box.innerHTML = rs.map((x,i)=>
+    `<div class="sp-item" data-i="${i}"><i>${esc(x[0])}</i> <span class="tag t-${x[3]}">${x[3]==='N'?'Nativa':x[3]==='E'?'Exótica':'Indet.'}</span>
+     <small>${esc(x[1])}${x[2]?' · '+esc(x[2]):''}</small></div>`).join('') + criar;
+  box._rs = rs; box.hidden = false;
+}
+
+function validaSci(){
+  const v = document.getElementById('nSci').value.trim();
+  const av = document.getElementById('nSciAviso');
+  const jaTem = v && IDX.some(o => o.sci === norm(v));
+  if(jaTem){ av.hidden = false; av.textContent = 'Esta espécie já está na lista — salvar vai atualizar os dados dela.'; return; }
+  const bin = /^[A-Z][a-zé-]+ [a-z][a-zé-]{2,}/.test(v);
+  if(v && !bin){ av.hidden = false; av.textContent = 'O padrão esperado é Gênero e epíteto, como em Handroanthus impetiginosus. Fora do padrão também é aceito.'; }
+  else av.hidden = true;
+}
+
+/* ---------- combo de família: sugere, mas aceita qualquer texto ---------- */
+function pintaFamilias(q){
+  const box = document.getElementById('famList');
+  const n = norm(q);
+  const rs = (n ? FAMS.filter(f => norm(f).includes(n)) : FAMS).slice(0, 40);
+  if(!rs.length){
+    box.innerHTML = `<div class="sp-item" style="color:var(--muted)">“${esc(q)}” será cadastrada como família nova.</div>`;
+  } else {
+    box.innerHTML = rs.map(f => `<div class="sp-item" data-fam="${esc(f)}">${esc(f)}</div>`).join('');
+  }
+  box.hidden = false;
+}
+
+/* ---------- importação de lista externa ---------- */
+function csvLinha(l, sep){
+  const out = []; let cur = '', asp = false;
+  for(let i = 0; i < l.length; i++){
+    const c = l[i];
+    if(asp){ if(c === '"'){ if(l[i+1] === '"'){ cur += '"'; i++; } else asp = false; } else cur += c; }
+    else if(c === '"') asp = true;
+    else if(c === sep){ out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+async function importarEspecies(file){
+  let txt;
+  try{ txt = await file.text(); }catch(e){ return toast('Não consegui ler o arquivo'); }
+  const linhas = txt.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l => l.trim());
+  if(!linhas.length) return toast('Arquivo vazio');
+  const sep = (linhas[0].split(';').length >= linhas[0].split(',').length) ? ';' : ',';
+  const cab = csvLinha(linhas[0], sep).map(x => norm(x).replace(/[^a-z]/g,''));
+  const acha = (...ns) => { for(const nm of ns){ const i = cab.indexOf(nm); if(i >= 0) return i; } return -1; };
+  let iSci = acha('nomecientifico','especie','scientificname','taxon','nomeaceito','species');
+  const iFam = acha('familia','family');
+  const iPop = acha('nomepopular','nomecomum','vernacularname','popular','nomevulgar');
+  const iOrg = acha('origem','origin','estabelecimento','establishmentmeans');
+  let ini = 1;
+  if(iSci < 0){ iSci = 0; ini = 0; }        // sem cabeçalho reconhecível: 1ª coluna é a espécie
+
+  const novas = [], vistas = new Set();
+  for(let i = ini; i < linhas.length; i++){
+    const c = csvLinha(linhas[i], sep);
+    const sci = (c[iSci] || '').trim();
+    if(!sci || sci.length < 3) continue;
+    const chave = norm(sci);
+    if(vistas.has(chave)) continue;
+    vistas.add(chave);
+    const org = norm(iOrg >= 0 ? c[iOrg] : '');
+    novas.push([sci, iFam >= 0 ? (c[iFam]||'').trim() : '', iPop >= 0 ? (c[iPop]||'').trim() : '',
+                org.startsWith('exot') || org.startsWith('intro') || org.startsWith('cultiv') ? 'E'
+                : org.startsWith('nativ') || org.startsWith('endem') ? 'N' : 'I']);
+  }
+  if(!novas.length) return toast('Nenhuma espécie reconhecida — confira se há uma coluna com o nome científico');
+  if(!await ask(`Importar ${novas.length.toLocaleString('pt-BR')} espécies? A lista importada anterior será substituída. As que você cadastrou à mão continuam.`, 'Importar')) return;
+  S.imported = novas;
+  await idbPut('kv', {k:'imported', v:S.imported});
+  reindexar();
+  toast(novas.length.toLocaleString('pt-BR') + ' espécies na lista');
+}
+
+function pintaListaEsp(){
+  const box = document.getElementById('listaEsp');
+  if(!S.extra.length){
+    box.innerHTML = '<div class="note" style="padding:10px 0">Você ainda não cadastrou nenhuma espécie à mão.</div>';
+    box.hidden = false; return;
+  }
+  box.innerHTML = S.extra.map((x,i) =>
+    `<div class="rec" style="padding:9px 0">
+       <div style="min-width:0;flex:1"><div class="sci">${esc(x[0])}</div>
+       <div class="dt">${esc(x[1]||'sem família')}${x[2] ? ' · ' + esc(x[2]) : ''}</div></div>
+       <button class="go" data-rmesp="${i}" aria-label="Remover">🗑</button>
+     </div>`).join('');
+  box.querySelectorAll('[data-rmesp]').forEach(b => b.onclick = async () => {
+    S.extra.splice(+b.dataset.rmesp, 1);
+    await idbPut('kv', {k:'extra', v:S.extra});
+    reindexar(); pintaListaEsp(); toast('Espécie removida');
+  });
+  box.hidden = false;
+}
+function escolher(sp){
+  S.sp = sp;
+  document.getElementById('spList').hidden = true;
+  document.getElementById('fBusca').value = '';
+  document.getElementById('spSel').hidden = false;
+  document.getElementById('selSci').textContent = sp[0];
+  document.getElementById('selMeta').innerHTML = esc(sp[1]) + (sp[2]?' · '+esc(sp[2]):'') +
+    ` <span class="tag t-${sp[3]}">${sp[3]==='N'?'Nativa':sp[3]==='E'?'Exótica':'Indet.'}</span>`;
+  const ff = document.getElementById('fFator');
+  ff.value = sp[3]==='E' ? S.cfg.fE : S.cfg.fN;
+  recalc();
+}
+
+/* ============================================================
+   CAPs
+   ============================================================ */
+function pintaCaps(){
+  const box = document.getElementById('capRows');
+  box.innerHTML = S.caps.map((v,i)=>`
+    <div class="caprow">
+      <span class="k">CAP${i+1}</span>
+      <div class="fld"><input class="big capin" data-i="${i}" type="text" inputmode="decimal" value="${esc(v)}" placeholder="0"></div>
+      <span class="dap" data-dap="${i}">—</span>
+      ${S.caps.length>1?`<button class="rm" data-rm="${i}" type="button" aria-label="Remover fuste ${i+1}">×</button>`:'<span></span>'}
+    </div>`).join('');
+  box.querySelectorAll('.capin').forEach(el=>{
+    el.addEventListener('input', e=>{ S.caps[+e.target.dataset.i] = e.target.value; recalc(); });
+  });
+  box.querySelectorAll('[data-rm]').forEach(el=>{
+    el.addEventListener('click', e=>{ S.caps.splice(+e.currentTarget.dataset.rm,1); pintaCaps(); recalc(); });
+  });
+  document.getElementById('btnAddCap').style.display = S.caps.length>=8 ? 'none' : '';
+  recalc();
+}
+function recalc(){
+  const alt = document.getElementById('fAlt').value;
+  const fat = document.getElementById('fFator').value || S.cfg.fN;
+  const r = calc(S.caps, alt, fat);
+  r.daps.forEach((d,i)=>{ const el = document.querySelector(`[data-dap="${i}"]`); if(el) el.textContent = d>0 ? 'DAP '+br(d,2) : '—'; });
+  document.getElementById('roDeq').textContent = r.deq>0 ? br(r.deq,2) : '—';
+  document.getElementById('roG').textContent   = r.deq>0 ? br(r.g,4) : '—';
+  document.getElementById('roV').textContent   = isFinite(r.vol)&&r.deq>0 ? br(r.vol,3) : '—';
+  const w = document.getElementById('capWarn');
+  const capMin = num(S.cfg.capMin);
+  const menores = S.caps.filter(c=>{const v=num(c); return isFinite(v)&&v>0&&v<capMin;}).length;
+  if(menores){ w.hidden=false; w.innerHTML = `⚠ ${menores} fuste(s) abaixo do CAP mínimo de inclusão (${br(capMin,1)} cm ≡ DAP 5,0 cm). Confira se o indivíduo entra no censo.`; }
+  else w.hidden = true;
+}
+
+/* ============================================================
+   Coordenada colada
+   ============================================================ */
+function parPara(txt){
+  const s = String(txt||'').trim();
+  if(!s) return null;
+  // formato graus/minutos/segundos: 22°31'23.2"S 48°33'17.9"W
+  const dms = [...s.matchAll(/(\d{1,3})\s*[°º]\s*(\d{1,2})\s*['′]\s*([\d.,]+)\s*["″]?\s*([NSEWLOnsewlo])/g)];
+  if(dms.length >= 2){
+    const conv = m => {
+      const v = parseInt(m[1],10) + parseInt(m[2],10)/60 + parseFloat(m[3].replace(',','.'))/3600;
+      return /[SWOsw o]/i.test(m[4]) ? -v : v;
+    };
+    const a = conv(dms[0]), b = conv(dms[1]);
+    if(isFinite(a) && isFinite(b) && Math.abs(a)<=90 && Math.abs(b)<=180) return {lat:a, lon:b};
+  }
+  // formato decimal, com qualquer separador curto entre os dois números
+  const m = s.match(/(-?\d{1,3}[.,]\d+)[^\d]{0,12}?(-?\d{1,3}[.,]\d+)/);
+  if(!m) return null;
+  const a = parseFloat(m[1].replace(',','.')), b = parseFloat(m[2].replace(',','.'));
+  if(!isFinite(a) || !isFinite(b)) return null;
+  if(Math.abs(a)>90 || Math.abs(b)>180) return null;
+  return {lat:a, lon:b};
+}
+
+/* ============================================================
+   Fotos — inclui leitura da coordenada gravada no EXIF
+   ============================================================ */
+function exifGps(buf){
+  try{
+    const dv = new DataView(buf);
+    if(dv.getUint16(0) !== 0xFFD8) return null;
+    let off = 2;
+    while(off < dv.byteLength - 4){
+      if(dv.getUint8(off) !== 0xFF) return null;
+      const marca = dv.getUint8(off+1);
+      if(marca === 0xD8 || (marca >= 0xD0 && marca <= 0xD9)){ off += 2; continue; }
+      const tam = dv.getUint16(off+2);
+      if(marca === 0xE1 && dv.getUint32(off+4) === 0x45786966) return lerTiff(dv, off+10);
+      if(marca === 0xDA) return null;
+      off += 2 + tam;
+    }
+  }catch(e){}
+  return null;
+}
+function lerTiff(dv, base){
+  const le = dv.getUint16(base) === 0x4949;
+  const u16 = o => dv.getUint16(o, le), u32 = o => dv.getUint32(o, le);
+  if(u16(base+2) !== 0x002A) return null;
+  const ifd0 = base + u32(base+4);
+  let gps = 0;
+  const n = u16(ifd0);
+  for(let i=0;i<n;i++){ const e = ifd0 + 2 + i*12; if(u16(e) === 0x8825){ gps = base + u32(e+8); break; } }
+  if(!gps) return null;
+  const t = {};
+  const m = u16(gps);
+  const bytes = {1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8};
+  for(let i=0;i<m;i++){
+    const e = gps + 2 + i*12, tag = u16(e), tipo = u16(e+2), cnt = u32(e+4);
+    const total = (bytes[tipo]||1) * cnt;
+    const val = total <= 4 ? e+8 : base + u32(e+8);
+    if(tag===1 || tag===3) t[tag] = String.fromCharCode(dv.getUint8(val));
+    if(tag===2 || tag===4){
+      const r = [];
+      for(let k=0;k<3;k++){ const den = u32(val+k*8+4); r.push(den ? u32(val+k*8)/den : 0); }
+      t[tag] = r;
+    }
+  }
+  if(!t[2] || !t[4]) return null;
+  const dec = r => r[0] + r[1]/60 + r[2]/3600;
+  let lat = dec(t[2]), lon = dec(t[4]);
+  if(t[1] === 'S') lat = -lat;
+  if(t[3] === 'W') lon = -lon;
+  if(!isFinite(lat) || !isFinite(lon) || (lat===0 && lon===0)) return null;
+  if(Math.abs(lat)>90 || Math.abs(lon)>180) return null;
+  return {lat, lon};
+}
+async function comprimir(file){
+  const bmp = await createImageBitmap(file).catch(()=>null);
+  if(!bmp) return await file.arrayBuffer();
+  const max = 1600;
+  const k = Math.min(1, max/Math.max(bmp.width,bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  const blob = await new Promise(r=>c.toBlob(r,'image/jpeg',0.75));
+  bmp.close && bmp.close();
+  return await blob.arrayBuffer();
+}
+async function addFotos(files){
+  let doExif = null;
+  for(const f of files){
+    if(!doExif){ const bruto = await f.arrayBuffer(); doExif = exifGps(bruto); }
+    const buf = await comprimir(f);
+    S.photos.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,7), buf});
+  }
+  pintaFotos();
+  const X = document.getElementById('fX'), Y = document.getElementById('fY');
+  if(doExif && !X.value.trim() && !Y.value.trim()){
+    X.value = br(doExif.lat, 6); Y.value = br(doExif.lon, 6); S.src = 'EXIF da foto';
+    document.getElementById('fixInfo').textContent = 'Coordenada lida do arquivo da foto (EXIF da câmera do aparelho).';
+    toast('Coordenada lida da foto');
+  } else if(!doExif){
+    document.getElementById('exifDica').hidden = false;
+  }
+}
+function pintaFotos(){
+  const box = document.getElementById('photoBox');
+  box.querySelectorAll('.ph').forEach(e=>e.remove());
+  S.photos.forEach(p=>{
+    const url = URL.createObjectURL(new Blob([p.buf],{type:'image/jpeg'}));
+    const d = document.createElement('div'); d.className='ph';
+    d.innerHTML = `<img src="${url}" alt="Foto da árvore"><button type="button" aria-label="Remover foto">×</button>`;
+    d.querySelector('button').onclick = ()=>{ S.photos = S.photos.filter(x=>x.id!==p.id); pintaFotos(); };
+    box.insertBefore(d, box.firstChild);
+  });
+}
+
+/* ============================================================
+   Salvar / editar
+   ============================================================ */
+function proxNum(poly){
+  const ns = S.recs.filter(r=>String(r.poly)===String(poly)).map(r=>parseInt(r.num,10)).filter(n=>!isNaN(n));
+  return ns.length ? Math.max(...ns)+1 : 1;
+}
+function marcarErro(id,on){ const el=document.getElementById(id); el.classList.toggle('err',!!on); return el; }
+
+async function salvar(){
+  const poly = document.getElementById('fPoly').value.trim();
+  const alt  = document.getElementById('fAlt').value.trim();
+  const x = document.getElementById('fX').value.trim(), y = document.getElementById('fY').value.trim();
+  const temCap = S.caps.some(c=>{const v=num(c); return isFinite(v)&&v>0;});
+
+  marcarErro('fPoly', !poly); marcarErro('fAlt', !isFinite(num(alt)));
+  marcarErro('fX', !isFinite(num(x))); marcarErro('fY', !isFinite(num(y)));
+  const faltas = [];
+  if(!poly) faltas.push('polígono');
+  if(!S.sp) faltas.push('espécie');
+  if(!isFinite(num(alt))) faltas.push('altura');
+  if(!temCap) faltas.push('CAP');
+  if(!isFinite(num(x)) || !isFinite(num(y))) faltas.push('coordenada');
+  if(faltas.length){ toast('Falta preencher: ' + faltas.join(', ')); return; }
+
+  const numArv = document.getElementById('fNum').value.trim() || String(proxNum(poly));
+  const fator = document.getElementById('fFator').value.trim() || (S.sp[3]==='E'?S.cfg.fE:S.cfg.fN);
+  const r = calc(S.caps, alt, fator);
+
+  const id = S.editId || ('t'+Date.now()+Math.random().toString(36).slice(2,6));
+  const antigas = S.editId ? (S.recs.find(z=>z.id===S.editId)?.fotos || []) : [];
+  const novasIds = [];
+  for(let i=0;i<S.photos.length;i++){
+    const p = S.photos[i];
+    await idbPut('photos', {id:p.id, buf:p.buf});
+    novasIds.push(p.id);
+  }
+  for(const old of antigas){ if(!novasIds.includes(old)) await idbDel('photos', old); }
+
+  const rec = {
+    id, data: document.getElementById('fData').value, poly, num: numArv,
+    fam: S.sp[1], sci: S.sp[0], pop: S.sp[2], org: S.sp[3]==='N'?'Nativa':S.sp[3]==='E'?'Exótica':'Indeterminada',
+    alt: alt.replace(',','.'), caps: S.caps.map(c=>String(c||'').replace(',','.')),
+    fator: String(fator).replace(',','.'),
+    deq: r.deq, g: r.g, vol: r.vol,
+    x: x.replace(',','.'), y: y.replace(',','.'),
+    acc: (S.src === 'GPS do aparelho' && S.fix) ? Math.round(S.fix.acc) : '',
+    src: S.src || 'Digitada',
+    obs: document.getElementById('fObs').value.trim(),
+    coletor: document.getElementById('fColetor').value.trim(),
+    hora: S.editId ? (S.recs.find(z=>z.id===S.editId)?.hora || new Date().toISOString()) : new Date().toISOString(),
+    fotos: novasIds
+  };
+  await idbPut('recs', rec);
+  const i = S.recs.findIndex(z=>z.id===id);
+  if(i>=0) S.recs[i]=rec; else S.recs.push(rec);
+
+  const eraEdicao = !!S.editId;
+  S.editId = null;
+  novaFicha(true);
+  pintaRegistros();
+  toast(eraEdicao ? 'Registro atualizado' : `Árvore ${poly}-${numArv} salva · ${S.recs.length} no total`);
+}
+
+function novaFicha(mantemContexto){
+  S.sp = null; S.caps = ['']; S.photos = []; S.src = '';
+  document.getElementById('spSel').hidden = true;
+  document.getElementById('fBusca').value = '';
+  document.getElementById('fAlt').value = '';
+  document.getElementById('fObs').value = '';
+  document.getElementById('fFator').value = S.cfg.fN;
+  document.getElementById('fNum').value = '';
+  document.getElementById('btnCancelEdit').hidden = true;
+  document.getElementById('btnSalvar').textContent = 'Salvar árvore';
+  if(!mantemContexto){ document.getElementById('fX').value=''; document.getElementById('fY').value=''; }
+  document.querySelectorAll('.err').forEach(e=>e.classList.remove('err'));
+  pintaCaps(); pintaFotos();
+  const poly = document.getElementById('fPoly').value.trim();
+  document.getElementById('fNum').placeholder = poly ? 'auto → ' + proxNum(poly) : 'auto';
+}
+
+async function editar(id){
+  const r = S.recs.find(z=>z.id===id); if(!r) return;
+  S.editId = id;
+  document.getElementById('fPoly').value = r.poly;
+  document.getElementById('fNum').value = r.num;
+  document.getElementById('fData').value = r.data;
+  document.getElementById('fColetor').value = r.coletor||'';
+  document.getElementById('fX').value = br(parseFloat(r.x),6);
+  document.getElementById('fY').value = br(parseFloat(r.y),6);
+  document.getElementById('fAlt').value = String(r.alt).replace('.',',');
+  document.getElementById('fFator').value = String(r.fator).replace('.',',');
+  document.getElementById('fObs').value = r.obs||'';
+  S.src = r.src || 'Digitada';
+  S.caps = (r.caps&&r.caps.length?r.caps:['']).map(c=>String(c).replace('.',','));
+  escolher([r.sci, r.fam, r.pop, r.org==='Nativa'?'N':r.org==='Exótica'?'E':'I']);
+  document.getElementById('fFator').value = String(r.fator).replace('.',',');
+  S.photos = [];
+  for(const pid of (r.fotos||[])){ const p = await idbGet('photos', pid); if(p) S.photos.push(p); }
+  pintaCaps(); pintaFotos();
+  document.getElementById('btnCancelEdit').hidden = false;
+  document.getElementById('btnSalvar').textContent = 'Atualizar';
+  irPara('coleta'); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function excluir(id){
+  const r = S.recs.find(z=>z.id===id); if(!r) return;
+  if(!await ask(`Excluir a árvore ${r.poly}-${r.num} (${r.sci})? Esta ação não pode ser desfeita.`, 'Excluir')) return;
+  for(const pid of (r.fotos||[])) await idbDel('photos', pid);
+  await idbDel('recs', id);
+  S.recs = S.recs.filter(z=>z.id!==id);
+  if(S.editId===id){ S.editId=null; novaFicha(true); }
+  pintaRegistros(); toast('Registro excluído');
+}
+
+/* ============================================================
+   Lista de registros
+   ============================================================ */
+async function pintaRegistros(){
+  const q = norm(document.getElementById('fFiltro').value);
+  const rs = S.recs.slice().sort((a,b)=> (b.hora||'').localeCompare(a.hora||''))
+    .filter(r => !q || norm(r.poly).includes(q) || norm(r.sci).includes(q) || norm(r.pop).includes(q) || norm(r.num)===q || norm(r.fam).includes(q));
+  document.getElementById('stN').textContent = S.recs.length;
+  document.getElementById('stP').textContent = new Set(S.recs.map(r=>r.poly)).size;
+  document.getElementById('stS').textContent = new Set(S.recs.map(r=>r.sci)).size;
+  document.getElementById('stF').textContent = S.recs.reduce((a,r)=>a+(r.fotos?r.fotos.length:0),0);
+
+  const box = document.getElementById('recList');
+  if(!rs.length){
+    box.innerHTML = `<div class="empty"><span class="big">◈</span>${S.recs.length?'Nenhum registro corresponde ao filtro.':'Nenhuma árvore registrada ainda.<br>Comece pela aba Coleta.'}</div>`;
+    return;
+  }
+  box.innerHTML = rs.map(r=>`
+    <div class="rec" data-id="${r.id}">
+      <div class="thumb" data-thumb="${r.fotos&&r.fotos.length?r.fotos[0]:''}">${r.fotos&&r.fotos.length?'':'—'}</div>
+      <div style="min-width:0;flex:1">
+        <div class="id">${esc(r.poly)} · nº ${esc(r.num)} ${r.fotos&&r.fotos.length?'· 📷'+r.fotos.length:''}</div>
+        <div class="sci">${esc(r.sci)}</div>
+        <div class="dt">H ${br(parseFloat(r.alt),1)} m · Deq ${br(r.deq,1)} cm · V ${br(r.vol,3)} m³</div>
+      </div>
+      <button class="go" data-ed="${r.id}" aria-label="Editar">✎</button>
+      <button class="go" data-del="${r.id}" aria-label="Excluir">🗑</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editar(b.dataset.ed));
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>excluir(b.dataset.del));
+  for(const t of box.querySelectorAll('[data-thumb]')){
+    const pid = t.dataset.thumb; if(!pid) continue;
+    const p = await idbGet('photos', pid);
+    if(p){ const u = URL.createObjectURL(new Blob([p.buf],{type:'image/jpeg'})); t.innerHTML = `<img src="${u}" alt="">`; }
+  }
+}
+
+/* ============================================================
+   ZIP (store) + XLSX
+   ============================================================ */
+const CRC_T = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF; for(let i=0;i<u8.length;i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c>>>8); return (c ^ 0xFFFFFFFF)>>>0; }
+
+function zipMake(files){ // files: [{name, data:Uint8Array}]
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let off = 0;
+  for(const f of files){
+    const nm = enc.encode(f.name), crc = crc32(f.data), sz = f.data.length;
+    const lh = new Uint8Array(30 + nm.length), dv = new DataView(lh.buffer);
+    dv.setUint32(0, 0x04034b50, true); dv.setUint16(4, 20, true); dv.setUint16(6, 0x0800, true);
+    dv.setUint16(8, 0, true); dv.setUint16(10, 0, true); dv.setUint16(12, 0, true);
+    dv.setUint32(14, crc, true); dv.setUint32(18, sz, true); dv.setUint32(22, sz, true);
+    dv.setUint16(26, nm.length, true); dv.setUint16(28, 0, true);
+    lh.set(nm, 30);
+    parts.push(lh, f.data);
+    const cd = new Uint8Array(46 + nm.length), cv = new DataView(cd.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true); cv.setUint16(10, 0, true);
+    cv.setUint32(16, crc, true); cv.setUint32(20, sz, true); cv.setUint32(24, sz, true);
+    cv.setUint16(28, nm.length, true); cv.setUint32(42, off, true);
+    cd.set(nm, 46); central.push(cd);
+    off += lh.length + sz;
+  }
+  const cdSize = central.reduce((a,c)=>a+c.length, 0);
+  const eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true); ev.setUint32(16, off, true);
+  return new Blob([...parts, ...central, eo], {type:'application/zip'});
+}
+
+const xesc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+
+function xlsxMake(header, rows, sheetName){
+  const enc = new TextEncoder();
+  const col = n => { let s=''; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; };
+  const cel = (v,r,c) => {
+    const ref = col(c)+(r+1);
+    if(typeof v === 'number' && isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+    if(v===''||v===null||v===undefined) return '';
+    return `<c r="${ref}" t="inlineStr" s="1"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`;
+  };
+  let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    + '<sheetFormatPr defaultRowHeight="15"/><sheetData>';
+  xml += `<row r="1">` + header.map((h,c)=>`<c r="${col(c)}1" t="inlineStr" s="3"><is><t>${xesc(h)}</t></is></c>`).join('') + '</row>';
+  rows.forEach((row,i)=>{ xml += `<row r="${i+2}">` + row.map((v,c)=>cel(v,i+1,c)).join('') + '</row>'; });
+  xml += '</sheetData><autoFilter ref="A1:'+col(header.length-1)+(rows.length+1)+'"/></worksheet>';
+
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
+    + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FF2A6B49"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    + '<cellXfs count="4"><xf xfId="0"/><xf xfId="0" fontId="0"/><xf xfId="0"/>'
+    + '<xf xfId="0" fontId="1" fillId="2" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs>'
+    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+    + '<dxfs count="0"/></styleSheet>';
+
+  const files = [
+    {name:'[Content_Types].xml', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>')},
+    {name:'_rels/.rels', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')},
+    {name:'xl/workbook.xml', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+xesc(sheetName)+'" sheetId="1" r:id="rId1"/></sheets></workbook>')},
+    {name:'xl/_rels/workbook.xml.rels', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>')},
+    {name:'xl/styles.xml', data: enc.encode(styles)},
+    {name:'xl/worksheets/sheet1.xml', data: enc.encode(xml)}
+  ];
+  return zipMake(files);
+}
+
+/* ============================================================
+   Exportação
+   ============================================================ */
+const HEAD = ['Data','N° Polígono','Nº','Família','Nome científico','Nome popular','Origem','Altura',
+  'CAP1','CAP2','CAP3','CAP4','CAP5','CAP6','CAP7','CAP8',
+  'DAP1','DAP2','DAP3','DAP4','DAP5','DAP6','DAP7','DAP8',
+  'Deq (cm)','g (m²)','Vol. (m³)','X','Y','Observação',
+  'Precisão GPS (m)','Origem da coordenada','Coletor','Hora','Fotos'];
+
+function ordenados(){
+  return S.recs.slice().sort((a,b)=>{
+    const pa = parseInt(a.poly,10), pb = parseInt(b.poly,10);
+    if(pa!==pb) return (isNaN(pa)?9e9:pa) - (isNaN(pb)?9e9:pb);
+    return (parseInt(a.num,10)||0) - (parseInt(b.num,10)||0);
+  });
+}
+function fotoNomes(r){ return (r.fotos||[]).map((_,i)=>`P${r.poly}-A${r.num}-${i+1}.jpg`); }
+
+function linha(r, comoNumero){
+  const caps = Array.from({length:8}, (_,i)=> r.caps[i]!==undefined && r.caps[i]!=='' ? parseFloat(r.caps[i]) : NaN);
+  const daps = caps.map(c => isFinite(c)&&c>0 ? c/Math.PI : 0);
+  const dataBr = r.data ? r.data.split('-').reverse().join('/') : '';
+  const hora = r.hora ? new Date(r.hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+  const N = v => comoNumero ? (isFinite(v)?Math.round(v*1e6)/1e6:'') : (isFinite(v)?br(v,2):'');
+  const N3 = v => comoNumero ? (isFinite(v)?Math.round(v*1e6)/1e6:'') : (isFinite(v)?br(v,3):'');
+  const N4 = v => comoNumero ? (isFinite(v)?Math.round(v*1e8)/1e8:'') : (isFinite(v)?br(v,4):'');
+  const C = v => isFinite(v) ? (comoNumero ? v : br(v,0)) : '';
+  const NN = v => { const n = parseInt(v,10); return (comoNumero && !isNaN(n) && String(n)===String(v).trim()) ? n : v; };
+  return [
+    dataBr, NN(r.poly), NN(r.num), r.fam, r.sci, r.pop, r.org,
+    comoNumero ? (parseFloat(r.alt)||'') : br(parseFloat(r.alt),1),
+    ...caps.map(C),
+    ...daps.map(d => d>0 ? N(d) : (comoNumero?0:'0,00')),
+    N(r.deq), N4(r.g), N3(r.vol),
+    comoNumero ? (parseFloat(r.x)||'') : br(parseFloat(r.x),6),
+    comoNumero ? (parseFloat(r.y)||'') : br(parseFloat(r.y),6),
+    r.obs||'', r.acc===''?'':(comoNumero?Number(r.acc):String(r.acc)), r.src||'', r.coletor||'', hora, fotoNomes(r).join(' | ')
+  ];
+}
+/* Entrega de arquivos.
+   Dentro do visualizador do Claude o download só passa pela capability
+   `downloads`, que aceita uma lista fechada de extensões. Fora dele
+   (arquivo aberto direto no navegador) usa-se o link clássico. */
+const DLP = (typeof claude !== 'undefined' && claude && typeof claude.use === 'function')
+  ? claude.use('downloads').catch(()=>null) : Promise.resolve(null);
+
+function linkDireto(blob, nome){
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=u; a.download=nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u), 4000);
+}
+
+/* tentativas = [[extensão, dados], ...] em ordem de preferência */
+async function entregar(base, tentativas){
+  const DL = await DLP;
+  if(!DL){ linkDireto(tentativas[0][1] instanceof Blob ? tentativas[0][1] : new Blob([tentativas[0][1]]), base+'.'+tentativas[0][0]); return true; }
+  for(let i=0;i<tentativas.length;i++){
+    const [ext, dados] = tentativas[i];
+    try{
+      await DL.save({filename: base+'.'+ext, data: dados});
+      if(i>0) toast('Salvo como .'+ext+' — este visualizador não libera .'+tentativas[0][0]);
+      return true;
+    }catch(e){
+      const c = e && e.code;
+      if(c==='declined'){ toast('Download cancelado'); return false; }
+      if(c==='rate_limited'){ toast('Aguarde alguns segundos e tente novamente'); return false; }
+      if(c==='too_large'){ toast('Arquivo grande demais (limite 16 MB) — exporte por polígono'); return false; }
+      if(c==='rejected_extension' || c==='extension_not_enabled') continue;
+      toast('Não foi possível salvar o arquivo aqui'); return false;
+    }
+  }
+  toast('Formato bloqueado neste visualizador — use o Backup .json');
+  return false;
+}
+const carimbo = () => new Date().toISOString().slice(0,10).split('-').reverse().join('-');
+
+async function expCsv(){
+  if(!S.recs.length) return toast('Nenhum registro para exportar');
+  const linhas = [HEAD.join(';')].concat(ordenados().map(r =>
+    linha(r,false).map(v => { const s=String(v??''); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(';')));
+  const txt = '﻿' + linhas.join('\r\n');
+  if(await entregar(`Arvores_isoladas_${carimbo()}`, [['csv', txt], ['txt', txt]]))
+    toast(S.recs.length + ' registros exportados');
+}
+async function expXlsx(){
+  if(!S.recs.length) return toast('Nenhum registro para exportar');
+  const rows = ordenados();
+  const linhas = [HEAD.join(';')].concat(rows.map(r =>
+    linha(r,false).map(v => { const s=String(v??''); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(';')));
+  if(await entregar(`Arvores_isoladas_${carimbo()}`,
+      [['xlsx', xlsxMake(HEAD, rows.map(r=>linha(r,true)), 'Árvores isoladas')],
+       ['csv', '\ufeff'+linhas.join('\r\n')], ['txt', '\ufeff'+linhas.join('\r\n')]]))
+    toast(rows.length + ' registros exportados');
+}
+async function expZip(){
+  const arqs = [];
+  for(const r of ordenados()){
+    const nomes = fotoNomes(r);
+    for(let i=0;i<(r.fotos||[]).length;i++){
+      const p = await idbGet('photos', r.fotos[i]);
+      if(p) arqs.push({name: `P${r.poly}/${nomes[i]}`, data: new Uint8Array(p.buf)});
+    }
+  }
+  if(!arqs.length) return toast('Nenhuma foto registrada ainda');
+  const idx = ['Arquivo;Polígono;Nº;Nome científico;X;Y'].concat(
+    ordenados().flatMap(r => fotoNomes(r).map(n => [`P${r.poly}/${n}`, r.poly, r.num, r.sci, br(parseFloat(r.x),6), br(parseFloat(r.y),6)].join(';')))
+  ).join('\r\n');
+  arqs.push({name:'indice_fotos.csv', data:new TextEncoder().encode('﻿'+idx)});
+  const n = arqs.length - 1;
+  if(await entregar(`Fotos_arvores_${carimbo()}`, [['zip', zipMake(arqs)]]))
+    toast(n + ' fotos exportadas');
+  else toast('Fotos bloqueadas neste visualizador — use o Backup .json, que já leva as imagens dentro');
+}
+async function expJson(){
+  const fotos = [];
+  for(const r of S.recs) for(const pid of (r.fotos||[])){
+    const p = await idbGet('photos', pid);
+    if(p){ let s=''; const u=new Uint8Array(p.buf);
+      for(let i=0;i<u.length;i+=8192) s += String.fromCharCode.apply(null, u.subarray(i,i+8192));
+      fotos.push({id:pid, b64: btoa(s)}); }
+  }
+  const pacote = {app:'caderneta-dendrometrica', v:2, exportado:new Date().toISOString(), cfg:S.cfg, extra:S.extra, imported:S.imported, recs:S.recs, fotos};
+  if(await entregar(`Backup_caderneta_${carimbo()}`, [['json', JSON.stringify(pacote)]]))
+    toast('Backup gerado — guarde este arquivo');
+}
+async function impJson(file){
+  try{
+    const p = JSON.parse(await file.text());
+    if(!p.recs) throw new Error('formato');
+    if(!await ask(`Restaurar ${p.recs.length} registros? Os registros atuais com o mesmo identificador serão substituídos.`, 'Restaurar')) return;
+    for(const f of (p.fotos||[])){
+      const bin = atob(f.b64); const u = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+      await idbPut('photos', {id:f.id, buf:u.buffer});
+    }
+    for(const r of p.recs){ await idbPut('recs', r); const i=S.recs.findIndex(z=>z.id===r.id); if(i>=0)S.recs[i]=r; else S.recs.push(r); }
+    if(p.extra){ S.extra = p.extra; await idbPut('kv',{k:'extra',v:S.extra}); }
+    if(p.imported){ S.imported = p.imported; await idbPut('kv',{k:'imported',v:S.imported}); }
+    reindexar();
+    if(p.cfg){ S.cfg = Object.assign(S.cfg, p.cfg); await idbPut('kv',{k:'cfg',v:S.cfg}); }
+    pintaRegistros(); toast(p.recs.length + ' registros restaurados');
+  }catch(e){ toast('Arquivo inválido — selecione um backup .json gerado por este app'); }
+}
+
+/* ============================================================
+   Diagnóstico do GPS
+   ============================================================ */
+async function diagnostico(){
+  const out = document.getElementById('diagOut');
+  out.hidden = false;
+  const L = [];
+  L.push('Endereço      : ' + location.protocol + '//' + (location.host || '(arquivo local)'));
+  L.push('Contexto seguro: ' + (window.isSecureContext ? 'sim' : 'NÃO'));
+  let emIframe = false; try{ emIframe = window.top !== window.self; }catch(e){ emIframe = true; }
+  L.push('Dentro de iframe: ' + (emIframe ? 'sim' : 'não'));
+  let pol = 'não informado';
+  try{ const fp = document.featurePolicy || document.permissionsPolicy;
+       if(fp && fp.allowsFeature) pol = fp.allowsFeature('geolocation') ? 'liberado' : 'BLOQUEADO'; }catch(e){}
+  L.push('Política p/ GPS : ' + pol);
+  L.push('API geolocation : ' + (navigator.geolocation ? 'presente' : 'ausente'));
+  try{ const st = await navigator.permissions.query({name:'geolocation'}); L.push('Permissão       : ' + st.state); }
+  catch(e){ L.push('Permissão       : não consultável'); }
+  out.textContent = L.join('\n') + '\nTeste ao vivo    : consultando…';
+  const r = await new Promise(res => {
+    if(!navigator.geolocation) return res('API ausente');
+    navigator.geolocation.getCurrentPosition(
+      p => res('OK — ' + p.coords.latitude.toFixed(6) + ', ' + p.coords.longitude.toFixed(6) + ' (±' + Math.round(p.coords.accuracy) + ' m)'),
+      e => res('FALHOU — código ' + e.code + ' (' + (e.code===1?'permissão negada':e.code===2?'posição indisponível':'tempo esgotado') + '): ' + e.message),
+      {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+  });
+  L.push('Teste ao vivo   : ' + r);
+  out.textContent = L.join('\n');
+}
+
+/* ============================================================
+   Navegação e boot
+   ============================================================ */
+function ask(msg, okLabel){
+  return new Promise(res=>{
+    const m = document.getElementById('modal');
+    document.getElementById('mtxt').textContent = msg;
+    document.getElementById('mYes').textContent = okLabel || 'Confirmar';
+    m.hidden = false;
+    const fim = v => { m.hidden = true; document.getElementById('mYes').onclick=null; document.getElementById('mNo').onclick=null; res(v); };
+    document.getElementById('mYes').onclick = ()=>fim(true);
+    document.getElementById('mNo').onclick  = ()=>fim(false);
+    document.getElementById('mYes').focus();
+  });
+}
+let toastT = null;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(()=>t.hidden=true, 3000);
+}
+function irPara(v){
+  ['coleta','reg','exp'].forEach(k=> document.getElementById('v-'+k).hidden = (k!==v));
+  document.querySelectorAll('.tab').forEach(b=> b.classList.toggle('on', b.dataset.v===v));
+  document.getElementById('btnSalvar').style.display = v==='coleta' ? '' : 'none';
+  if(v==='reg') pintaRegistros();
+}
+async function salvarCfg(){ await idbPut('kv',{k:'cfg', v:S.cfg}); }
+
+async function boot(){
+  try{ db = await openDB(); }
+  catch(e){ toast('Não foi possível abrir o armazenamento local deste navegador'); }
+
+  if(db){
+    S.recs = await idbAll('recs');
+    const c = await idbGet('kv','cfg'); if(c&&c.v) S.cfg = Object.assign(S.cfg, c.v);
+    const x = await idbGet('kv','extra'); if(x&&x.v) S.extra = x.v;
+    const im = await idbGet('kv','imported'); if(im&&im.v) S.imported = im.v;
+  }
+
+  reindexar();
+
+  // config → campos
+  document.getElementById('fData').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fColetor').value = S.cfg.coletor||'';
+  document.getElementById('fPoly').value = S.cfg.poly||'';
+  document.getElementById('cProj').value = S.cfg.proj||'';
+  document.getElementById('cFator').value = S.cfg.fE;
+  document.getElementById('cFatorN').value = S.cfg.fN;
+  document.getElementById('cCapMin').value = S.cfg.capMin;
+  document.getElementById('chipPoly').textContent = S.cfg.poly || '—';
+  document.getElementById('fFator').value = S.cfg.fN;
+
+  pintaCaps(); pintaRegistros();
+
+  // ---- eventos
+  document.querySelectorAll('.tab').forEach(b=> b.onclick = ()=> irPara(b.dataset.v));
+  document.getElementById('btnSalvar').onclick = salvar;
+  document.getElementById('btnLimpar').onclick = ()=>{ S.editId=null; novaFicha(true); toast('Ficha limpa'); };
+  document.getElementById('btnCancelEdit').onclick = ()=>{ S.editId=null; novaFicha(true); toast('Edição cancelada'); };
+  document.getElementById('btnAddCap').onclick = ()=>{ if(S.caps.length<8){ S.caps.push(''); pintaCaps(); } };
+  document.getElementById('fAlt').addEventListener('input', recalc);
+  document.getElementById('fFator').addEventListener('input', recalc);
+
+  document.getElementById('fPoly').addEventListener('input', e=>{
+    S.cfg.poly = e.target.value.trim(); salvarCfg();
+    document.getElementById('chipPoly').textContent = S.cfg.poly || '—';
+    document.getElementById('fNum').placeholder = S.cfg.poly ? 'auto → ' + proxNum(S.cfg.poly) : 'auto';
+  });
+  document.getElementById('fColetor').addEventListener('input', e=>{ S.cfg.coletor = e.target.value; salvarCfg(); });
+  document.getElementById('cProj').addEventListener('input', e=>{ S.cfg.proj = e.target.value; salvarCfg(); });
+  document.getElementById('cFator').addEventListener('input', e=>{ S.cfg.fE = e.target.value; salvarCfg(); });
+  document.getElementById('cFatorN').addEventListener('input', e=>{ S.cfg.fN = e.target.value; salvarCfg(); });
+  document.getElementById('cCapMin').addEventListener('input', e=>{ S.cfg.capMin = e.target.value; salvarCfg(); recalc(); });
+
+  document.getElementById('btnDiag').onclick = diagnostico;
+  document.getElementById('fColar').addEventListener('input', e=>{
+    const p = parPara(e.target.value);
+    if(p){
+      document.getElementById('fX').value = br(p.lat,6);
+      document.getElementById('fY').value = br(p.lon,6);
+      S.src = 'Colada';
+      document.getElementById('fixInfo').textContent = 'Coordenada colada manualmente.';
+      e.target.value = ''; toast('Coordenada aplicada');
+    }
+  });
+  if(location.protocol === 'file:') document.getElementById('exifDica').hidden = false;
+  ['fX','fY'].forEach(id => document.getElementById(id).addEventListener('input', ()=>{ S.src = 'Digitada'; }));
+  document.getElementById('btnGpsOn').onclick = gpsToggle;
+  document.getElementById('btnFix').onclick = capturarFix;
+
+  const busca = document.getElementById('fBusca');
+  busca.addEventListener('input', ()=> pintaLista(busca.value));
+  busca.addEventListener('focus', ()=> pintaLista(busca.value));
+  document.getElementById('spList').addEventListener('click', e=>{
+    const it = e.target.closest('.sp-item'); if(!it) return;
+    if(it.dataset.novo){
+      const termo = busca.value.trim();
+      document.getElementById('spList').hidden = true;
+      document.getElementById('spNova').open = true;
+      const ns = document.getElementById('nSci');
+      ns.value = termo.charAt(0).toUpperCase() + termo.slice(1);
+      ns.focus(); validaSci();
+      return;
+    }
+    if(it.dataset.i === undefined) return;
+    escolher(document.getElementById('spList')._rs[+it.dataset.i]);
+  });
+  document.addEventListener('click', e=>{
+    const w = e.target.closest('.sp-wrap');
+    if(!w || w !== document.getElementById('fBusca').parentElement) document.getElementById('spList').hidden = true;
+    if(!w || !w.contains(document.getElementById('nFam'))) document.getElementById('famList').hidden = true;
+  });
+  const nFam = document.getElementById('nFam'), nSci = document.getElementById('nSci');
+  nFam.addEventListener('input', () => pintaFamilias(nFam.value));
+  nFam.addEventListener('focus', () => pintaFamilias(nFam.value));
+  document.getElementById('famList').addEventListener('click', e => {
+    const it = e.target.closest('[data-fam]'); if(!it) return;
+    nFam.value = it.dataset.fam;
+    document.getElementById('famList').hidden = true;
+  });
+  nSci.addEventListener('input', validaSci);
+
+  document.getElementById('btnUsarNova').onclick = async ()=>{
+    const sci = nSci.value.trim().replace(/\s+/g,' ');
+    if(sci.length < 3) return toast('Informe o nome científico');
+    const o = document.getElementById('nOrg').value;
+    const sp = [sci, nFam.value.trim(), document.getElementById('nPop').value.trim(),
+                o==='Nativa'?'N':o==='Exótica'?'E':'I'];
+    const chave = norm(sci);
+    const i = S.extra.findIndex(x => norm(x[0]) === chave);
+    if(i >= 0) S.extra[i] = sp; else S.extra.push(sp);
+    await idbPut('kv',{k:'extra', v:S.extra});
+    reindexar();
+    escolher(sp);
+    document.getElementById('spNova').open = false;
+    ['nSci','nPop','nFam'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('nSciAviso').hidden = true;
+    toast(i >= 0 ? 'Espécie atualizada' : 'Espécie cadastrada neste aparelho');
+  };
+
+  document.getElementById('fImpEsp').addEventListener('change', e => {
+    if(e.target.files[0]) importarEspecies(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('btnVerEsp').onclick = () => {
+    const b = document.getElementById('listaEsp');
+    if(b.hidden === false){ b.hidden = true; return; }
+    pintaListaEsp();
+  };
+  document.getElementById('btnLimparImp').onclick = async () => {
+    if(!await ask('Remover as ' + S.imported.length.toLocaleString('pt-BR') +
+                  ' espécies importadas? As que você cadastrou à mão continuam.', 'Remover')) return;
+    S.imported = []; await idbPut('kv',{k:'imported', v:[]});
+    reindexar(); toast('Lista importada removida');
+  };
+
+  document.getElementById('fPhoto').addEventListener('change', async e=>{
+    if(e.target.files.length){ toast('Processando foto…'); await addFotos(Array.from(e.target.files)); }
+    e.target.value='';
+  });
+  document.getElementById('fFiltro').addEventListener('input', pintaRegistros);
+
+  document.getElementById('btnCsv').onclick = expCsv;
+  document.getElementById('btnXlsx').onclick = expXlsx;
+  document.getElementById('btnZip').onclick = expZip;
+  document.getElementById('btnJson').onclick = expJson;
+  document.getElementById('fImport').addEventListener('change', e=>{ if(e.target.files[0]) impJson(e.target.files[0]); e.target.value=''; });
+  document.getElementById('btnWipe').onclick = async ()=>{
+    if(!await ask('Apagar TODOS os registros e fotos deste aparelho? Exporte antes — não há como desfazer.', 'Apagar')) return;
+    if(!await ask('Confirma definitivamente? Todos os '+S.recs.length+' registros serão perdidos.', 'Sim, apagar')) return;
+    await idbClear('recs'); await idbClear('photos');
+    S.recs=[]; novaFicha(true); pintaRegistros(); toast('Base apagada');
+  };
+
+  window.addEventListener('beforeunload', e=>{
+    if(S.sp || S.caps.some(c=>c) || S.photos.length){ e.preventDefault(); e.returnValue=''; }
+  });
+
+  paintGps();
+  gpsToggle();
+}
+boot();
+
+/* ---------- instalação como aplicativo e funcionamento offline ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(()=>{ const d=document.getElementById('offStatus'); if(d) d.textContent='Pronto para uso offline — pode desligar os dados.'; })
+      .catch(()=>{ const d=document.getElementById('offStatus');
+                   if(d) d.textContent='Este endereço não permite o modo offline. Abra o app por um endereço https.'; });
+  });
+}
+let promptInstalar = null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); promptInstalar = e;
+  const b = document.getElementById('btnInstalar'); if(b) b.hidden = false;
+});
+document.addEventListener('click', async e=>{
+  if(e.target && e.target.id === 'btnInstalar' && promptInstalar){
+    promptInstalar.prompt();
+    const r = await promptInstalar.userChoice;
+    promptInstalar = null; e.target.hidden = true;
+    toast(r.outcome === 'accepted' ? 'App instalado na tela inicial' : 'Instalação cancelada');
+  }
+});
+window.addEventListener('appinstalled', ()=>{ const b=document.getElementById('btnInstalar'); if(b) b.hidden = true; });
+</script>
+
+</body>
+</html>
