@@ -1,7 +1,7 @@
 /* Service worker da Caderneta Dendrométrica.
    Estratégia: cache-first para o casco do app. Depois da primeira visita
    com internet, o app abre offline indefinidamente. */
-const CACHE = 'caderneta-v15';
+const CACHE = 'caderneta-v16';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png'];
 
 self.addEventListener('install', e => {
