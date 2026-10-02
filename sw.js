@@ -1,11 +1,13 @@
-/* Service worker da Caderneta Dendrométrica.
-   Estratégia: cache-first para o casco do app. Depois da primeira visita
-   com internet, o app abre offline indefinidamente. */
-const CACHE = 'caderneta-v16';
+/* Service worker da Caderneta Dendrométrica — v17 (02/10/2026).
+   index.html: rede primeiro (com internet, sempre pega a versão nova;
+   sem internet, abre a cópia guardada). Demais arquivos e fontes: cache primeiro. */
+const CACHE = 'caderneta-v17';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE)
+    .then(c => Promise.all(ARQUIVOS.map(u => c.add(new Request(u, {cache: 'reload'})).catch(() => null))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -14,15 +16,29 @@ self.addEventListener('activate', e => {
     .then(() => self.clients.claim()));
 });
 
+const guarda = (req, resp) => {
+  if (resp && resp.status === 200 && (resp.type === 'basic' || resp.type === 'cors')) {
+    const copia = resp.clone();
+    caches.open(CACHE).then(c => c.put(req, copia));
+  }
+  return resp;
+};
+
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  const ehPagina = req.mode === 'navigate' ||
+    (url.origin === location.origin && (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')));
+  if (ehPagina) {
+    e.respondWith(
+      fetch(req, {cache: 'no-store'}).then(r => guarda(req, r))
+        .catch(() => caches.match(req).then(h => h || caches.match('./index.html')))
+    );
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(resp => {
-      if (resp && resp.status === 200 && resp.type === 'basic') {
-        const copia = resp.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copia));
-      }
-      return resp;
-    }).catch(() => caches.match('./index.html')))
+    caches.match(req).then(hit => hit || fetch(req).then(r => guarda(req, r))
+      .catch(() => caches.match('./index.html')))
   );
 });

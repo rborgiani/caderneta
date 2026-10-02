@@ -1,7 +1,8 @@
 {
-  "name": "Caderneta Dendrométrica — censo de árvores isoladas",
+  "name": "Caderneta Dendrométrica",
   "short_name": "Caderneta",
-  "description": "Coleta de campo de árvores isoladas: GPS, foto, CAP por fuste e cálculo de Deq, área basal e volume.",
+  "description": "Coleta de campo: GPS, foto, CAP por fuste, Deq, área basal, volume e compensação.",
+  "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
