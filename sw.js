@@ -1,7 +1,7 @@
-/* Service worker da Caderneta Dendrométrica — v17 (02/10/2026).
+/* Service worker da Caderneta Dendrométrica — v18 (02/10/2026).
    index.html: rede primeiro (com internet, sempre pega a versão nova;
    sem internet, abre a cópia guardada). Demais arquivos e fontes: cache primeiro. */
-const CACHE = 'caderneta-v17';
+const CACHE = 'caderneta-v18';
 const ARQUIVOS = ['./', './index.html', './manifest.webmanifest', './icone-192.png', './icone-512.png'];
 
 self.addEventListener('install', e => {
